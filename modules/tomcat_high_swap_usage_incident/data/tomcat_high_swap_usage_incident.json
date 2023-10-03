@@ -1,0 +1,178 @@
+{
+  "name": "tomcat_high_swap_usage_incident",
+  "description": "Tomcat High Swap Usage Incident refers to an event where Tomcat, a popular open-source web server, is experiencing high swap usage. Swap usage is a memory management technique used by the operating system to temporarily move data from RAM to the hard disk. When Tomcat is consuming high swap memory, it can cause the server to slow down or even crash, resulting in downtime for the website or application hosted on the server. This incident type requires immediate attention to identify the root cause and resolve the issue to prevent further downtime.",
+  "params": [
+    {
+      "name": "PATH_TO_TOMCAT_CONFIG_FILE",
+      "value": ""
+    },
+    {
+      "name": "TOMCAT_PORT_NUMBER",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_TOMCAT_CONFIGURATION_FILES",
+      "value": ""
+    },
+    {
+      "name": "DESIRED_HEAP_SIZE",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_TOMCAT_LOG_FILES",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Tomcat High Swap Usage Incident\nTomcat High Swap Usage Incident refers to an event where Tomcat, a popular open-source web server, is experiencing high swap usage. Swap usage is a memory management technique used by the operating system to temporarily move data from RAM to the hard disk. When Tomcat is consuming high swap memory, it can cause the server to slow down or even crash, resulting in downtime for the website or application hosted on the server. This incident type requires immediate attention to identify the root cause and resolve the issue to prevent further downtime."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check swap usage"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `free -h`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check which processes are using the most swap space"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo swapon --show --bytes | awk '{print $1}' | xargs -n 1 sudo swapstat -p | sort -k3 -n -r | head -n 10`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check which processes are consuming the most memory"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem | head -n 11`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Tomcat log files for any errors or warnings"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo tail -f ${PATH_TO_TOMCAT_LOG_FILES}`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Tomcat configuration files for any misconfigurations"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo cat ${PATH_TO_TOMCAT_CONFIGURATION_FILES}`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Tomcat server status"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo systemctl status tomcat`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the system resource usage"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `top`"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check network connections to the Tomcat server"
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo netstat -tulpn | grep ${TOMCAT_PORT_NUMBER}`"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if any other services or applications are consuming high resources"
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo top`"
+    },
+    {
+      "name": "cell_20",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Review the Tomcat server configuration settings to ensure that the JVM heap size is optimized correctly."
+    },
+    {
+      "name": "cell_21",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_update_tomcat_config($PATH_TO_TOMCAT_CONFIG_FILE, $DESIRED_HEAP_SIZE)"
+    },
+    {
+      "name": "cell_22",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Restart the Tomcat server to clear the swap memory usage."
+    },
+    {
+      "name": "cell_23",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_stop_start_tomcat()"
+    }
+  ]
+}
